@@ -15,7 +15,6 @@ pipeline {
 			steps {
 				sh 'mvn install -DskipTests'
 			}
-
 			post {
 				success {
 					echo 'Now Archving...'
@@ -29,7 +28,9 @@ pipeline {
 			}
 		}
 		stage ('Checkstyle:checkstyle'){
-			sh 'mvn checkstyle'
+			step{
+				sh 'mvn checkstyle'
+			}
 		}
 	}
 }
