@@ -6,59 +6,60 @@ pipeline {
 	}
 
 	stages {
-		stage ('Fetch code'){
+		stage('Fetch code') {
 			steps {
 				git branch: 'vp-rem', url: 'https://github.com/devopshydclub/vprofile-project.git'
 			}
 		}
-		stage('Build'){
+		stage('Build') {
 			steps {
 				sh 'mvn install -DskipTests'
 			}
 			post {
 				success {
-					echo 'Now Archving...'
+					echo 'Now Archiving...'
 					archiveArtifacts artifacts: 'target/*.war'
 				}
 			}
 		}
-		stage ('Test'){
+		stage('Test') {
 			steps {
 				sh 'mvn test'
 			}
 		}
-		stage ('Checkstyle Analysis'){
+		stage('Checkstyle Analysis') {
 			steps {
 				sh 'mvn checkstyle:checkstyle'
 			}
 		}
-		stage ('Sonar Analysis'){
-			environment{
+		stage('Sonar Analysis') {
+			environment {
 				scannerHome = tool 'sonar4.7'
 			}
 			steps {
-				withSonarQubeEnv('sonar'){
-					sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+				withSonarQubeEnv('sonar') {
+					sh "${scannerHome}/bin/sonar-scanner \
+						-Dsonar.projectKey=vprofile \
 						-Dsonar.projectName=vprofile \
 						-Dsonar.projectVersion=1.0 \
 						-Dsonar.sources=src/ \
 						-Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
 						-Dsonar.junit.reportsPath=target/surefire-reports/ \
 						-Dsonar.jacoco.reportsPath=target/jacoco.exec \
-						-Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+						-Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml"
 				}
 			}
 		}
-		stage ('Quality Gate'){
+		stage('Quality Gate') {
 			steps {
-				timeout(time: 1, unit: 'HOURS'){
+				timeout(time: 1, unit: 'HOURS') {
 					waitForQualityGate abortPipeline: true
 				}
-            }
+			}
 		}
-		stage ('Upload Artifacts'){
+		stage('Upload Artifacts') {
 			steps {
-				 nexusArtifactUploader(
+				nexusArtifactUploader(
 			        nexusVersion: 'nexus3',
 			        protocol: 'http',
 			        nexusUrl: '54.81.251.216:8081',
@@ -67,12 +68,12 @@ pipeline {
 			        repository: 'vprofile-repo',
 			        credentialsId: 'nexuslogin',
 			        artifacts: [
-			            [artifactId: vproapp,
+			            [artifactId: 'vproapp',
 			             classifier: '',
 			             file: 'target/vprofile-v2.war',
 			             type: 'war']
 			        ]
-			     )
+			    )
 			}
 		}
 	}
