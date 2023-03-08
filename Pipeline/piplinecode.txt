@@ -1,10 +1,14 @@
+def COLOR_MAP = [
+	'SUCCESS': 'good',
+	'FAILURE': 'danger',
+]
+
 pipeline {
 	agent any
 	tools {
 		maven "MAVEN3"
 		jdk "OpenJDK8"
 	}
-
 	stages {
 		stage('Fetch code') {
 			steps {
@@ -75,6 +79,14 @@ pipeline {
 			        ]
 			    )
 			}
+		}
+	}
+	post {
+		always{
+			echo 'Slack Notification.'
+			slackSend channel: '#',
+			color: COLOR_MAP [currnetBuild.currentResult],
+			message: "*${currnetBuild.currentResult}:* Job ${evn.JOB_NAME} build ${evn.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
 		}
 	}
 }
